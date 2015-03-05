@@ -28,7 +28,8 @@ import tkMessageBox
 
 from FileDialog import LoadFileDialog, SaveFileDialog
 
-
+import platform
+import os
 
 
 import sys
@@ -330,7 +331,12 @@ def build_gui():
     keepGoingB = BooleanVar()
 
     packetI.set(1)
-    usbS.set("/dev/ttyACM0")
+    if platform.system()=="Windows":
+        usbS.set("COM<NUMBER>")
+    elif os.name=="posix":
+        usbS.set("/dev/ttyACM0")
+    else:
+        usbS.set("<ENTER SERIAL PORT HERE>")
     fileS.set("")
     keepGoingB.set(False)
 
@@ -340,7 +346,7 @@ def build_gui():
 
 
     usbF = Frame(root)
-    Label (usbF,text='usb port').pack(side=LEFT,padx=10,pady=10)
+    Label (usbF,text='serial port').pack(side=LEFT,padx=10,pady=10)
     usbEntry = Entry (usbF,width=30,textvariable=usbS)
     #usbEntry = Frame (usbF,background="red")
     usbEntry.pack(expand=True,side=LEFT,padx=10,pady=10,fill=BOTH)
