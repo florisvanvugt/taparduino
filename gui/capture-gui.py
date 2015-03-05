@@ -296,7 +296,7 @@ def doCapture():
         PACKET_LENGTH = 6
         interpret_output = interpret_output_continuous
         output_header = "timestamp force_reading"
-        report_dump_interval = 1000
+        report_dump_interval = 100
 
 
 
