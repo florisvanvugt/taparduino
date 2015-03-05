@@ -1,0 +1,79 @@
+// -*- Mode:c -*-
+// The above incantation tells emacs to do C style syntax highlighting
+
+/* Use FSR to record tapping responses
+
+Connect one end of FSR to 5V, the other end to Analog 0.
+Then connect one end of a 10K resistor from Analog 0 to ground
+
+For more information see http://www.ladyada.net/learn/sensors/fsr.html
+
+*/
+
+////////////////////////////////////  set variables 
+int fsrAnalogPin = 0; // FSR is connected to analog 0
+int fsrReading;      // the analog reading from the FSR resistor divider
+char* beginRead = "B"; // gives a start read barrier for the FSR reading
+char* endRead = "E"; // gives an end read barrier for the FSR reading
+unsigned long timeStamp=0; // timestamp for Arduino
+unsigned long prevt=-1; // the previous time value to ensure sample rate of 1000Hz
+
+//////////////////////////////////// load libraries
+#include <avr/pgmspace.h>
+
+//////////////////////////////////// SETUP
+void setup() {
+  //Serial.begin(9600); // slow speed debugging
+  Serial.begin(115200); // high speed debugging
+  //Serial.begin(1555200); // good speed for processing (must match python code for reading!)
+  
+}
+
+//////////////////////////////////// LOOP
+void loop(void) {
+
+  getInfos(); // read info 
+  collectData(); // send info
+       
+}
+
+//////////////////////////////////// FUNCTIONS
+// Send data to serial port
+void collectData() { 
+      
+  if (prevt==-1 | timeStamp!=prevt) { 
+    // only send if the time has changed, that is, 
+    // force the data transfer to maximum of 1000Hz.
+    // Using higher sample rates can result in buffer
+    // overflows and missed packets
+
+    // Send data to the serial port (for degugging in Arduino serial manager)
+    //Serial.print("FSR = ");
+    //Serial.print(fsrReading);
+    //Serial.print("Time = ");
+    //Serial.print(timeStamp);
+    //Serial.print("\n");
+    
+    // Send data to the serial port
+    Serial.print("B"); // signal packet start (hardcoded)
+    sendBinary(timeStamp); // send time
+    sendBinary(fsrReading); // send FSR reading
+    Serial.print("E"); // signal packet end (hardcoded)
+    prevt=timeStamp; // send previous time marker
+  }    
+}
+
+// get FSR and timing info, and turn off the sound at end of tone duration
+void getInfos() {
+  fsrReading = analogRead(fsrAnalogPin); // read FSR
+  timeStamp = millis(); // get time (in milliseconds)       
+}
+
+// Send data in binary to increase speed and reduce buffer overflow
+void sendBinary(int value) 
+// Send a binary value directly (without conversion to string)
+// based on http://my.safaribooksonline.com/book/hobbies/9781449399368/serial-communications/sending_binary_data_from_arduino#X2ludGVybmFsX0ZsYXNoUmVhZGVyP3htbGlkPTk3ODE0NDkzOTkzNjgvMTAy
+{
+  Serial.write(lowByte(value));
+  Serial.write(highByte(value));
+}
