@@ -35,7 +35,7 @@ import os
 import sys
 
 try:
-    import pyserial
+    import serial
 except:
     msg = "An error occurred while importing the pySerial module.\n\nGo to https://pypi.python.org/pypi/pyserial to install the module,\nor refer to our manual for help.\n\nThe program will now quit."
     print msg
