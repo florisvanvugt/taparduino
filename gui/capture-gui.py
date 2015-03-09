@@ -33,7 +33,17 @@ import os
 
 
 import sys
-import serial, time
+
+try:
+    import pyserial
+except:
+    msg = "An error occurred while importing the pySerial module.\n\nGo to https://pypi.python.org/pypi/pyserial to install the module,\nor refer to our manual for help.\n\nThe program will now quit."
+    print msg
+    tkMessageBox.showinfo("Error importing pySerial", msg)
+    sys.exit(-1)
+
+
+import time
 baudrate_discrete   = 9600    # for the discrete data setting (load the corresponding Arduino script)
 baudrate_continuous = 115200  # for the continuous data setting (load the corresponding Arduino script)
 
