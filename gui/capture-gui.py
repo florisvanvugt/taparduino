@@ -78,12 +78,58 @@ class Reporter:
             #self.previewB.configure(state=NORMAL,background="yellow")
             self.stopB.configure   (state=NORMAL,  background="red")
             self.captureB.configure(state=DISABLED,background="gray")
+
+            self.discR.config(state=DISABLED)
+            self.contR.config(state=DISABLED)
+
         else:
+
+            self.discR.config(state=NORMAL)
+            self.contR.config(state=NORMAL)
+
+            # Update which buttons are enabled or not
+            global packetI
+
+            continuous = packetI.get()!=1
+            if continuous:
+                buttonstate = NORMAL
+            else:
+                buttonstate = DISABLED
+            # Whether we are in continuous data mode
+
+            self.fastR.config(state=buttonstate)
+            self.mediumR.config(state=buttonstate)
+            self.slowR.config(state=buttonstate)
+
             self.stopB.configure   (state=DISABLED,background="gray")
             if len(fileS.get())>0:
                 self.captureB.configure(state=NORMAL,  background="darkgreen")
             else:
                 reporter.captureB.configure( state=DISABLED, background="gray" )
+
+
+
+
+
+
+    def determine_dump_interval(self):
+        global packetI # tells us what kind of data package we expect
+        global displayI # tells us what kind of display refresh rate
+
+        packet_type = packetI.get()
+        if packet_type==1:
+            # discrete: one packet per tap
+            self.report_dump_interval = 1
+        if packet_type==2:
+            
+            refreshrate = displayI.get()
+            
+            # This controls what fraction of packages is displayed: if set to 100, it will show 1 package in 100.
+            refreshrates = {1: 1,
+                            2: 100,
+                            3: 1000}
+            self.report_dump_interval = refreshrates[refreshrate]
+            
 
 
 
@@ -255,7 +301,7 @@ def runCapture():
                 # Occasionally give a bleep so the user knows
                 # we're still working
                 i+=1
-                if i>=report_dump_interval:
+                if i>=reporter.report_dump_interval:
                     reporter.report(output+"\n")
                     i=0
 
@@ -291,14 +337,12 @@ def doCapture():
     global PACKET_LENGTH
     global interpret_output
     global output_header
-    global report_dump_interval
     packet_type = packetI.get()
     if packet_type==1:
         # discrete: one packet per tap
         PACKET_LENGTH = 8
         interpret_output = interpret_output_discrete
         output_header = "onset offset maxforce"
-        report_dump_interval = 1
 
 
     if packet_type==2:
@@ -306,17 +350,19 @@ def doCapture():
         PACKET_LENGTH = 6
         interpret_output = interpret_output_continuous
         output_header = "timestamp force_reading"
-        report_dump_interval = 100
 
 
 
     reporter.startNew()
+    reporter.determine_dump_interval()
     reporter.thread = threading.Thread(target=runCapture)
     reporter.thread.start()
 
 
 
     
+
+
 
 
 
@@ -329,6 +375,7 @@ def build_gui():
     global usbS       # the current setting for the serial port
     global fileS      # the current setting for the file name
     global packetI    # the type of data that we will receive from arduino
+    global displayI   # how often the display should update
     global keepGoingB # keep track of whether we're still capturing
     global root
 
@@ -338,9 +385,12 @@ def build_gui():
     usbS       = StringVar()
     fileS      = StringVar()
     packetI    = IntVar()
+    displayI   = IntVar()
     keepGoingB = BooleanVar()
 
     packetI.set(1)
+    displayI.set(2)
+
     if platform.system()=="Windows":
         usbS.set("COM<NUMBER>")
     elif os.name=="posix":
@@ -379,11 +429,25 @@ def build_gui():
 
     packetF = Frame(root)
     Label (packetF,text='data type').pack(side=LEFT,padx=10)
-    discR = Radiobutton(packetF, text="discrete",   variable=packetI, value=1)
-    contR = Radiobutton(packetF, text="continuous", variable=packetI, value=2)
+    discR = Radiobutton(packetF, text="discrete",   variable=packetI, value=1, command=reporter.updateButtons)
+    contR = Radiobutton(packetF, text="continuous", variable=packetI, value=2, command=reporter.updateButtons)
     discR.pack(side=LEFT,padx=10,pady=10)
     contR.pack(side=LEFT,padx=10,pady=10)
     packetF.pack(padx=10,pady=0,fill=X)
+
+
+
+
+    updateF = Frame(root)
+    Label (updateF,text='display update').pack(side=LEFT,padx=10)
+    fastR    = Radiobutton(updateF, text="fast",   variable=displayI, value=1, command=reporter.determine_dump_interval)
+    mediumR  = Radiobutton(updateF, text="medium", variable=displayI, value=2, command=reporter.determine_dump_interval)
+    slowR    = Radiobutton(updateF, text="slow",   variable=displayI, value=3, command=reporter.determine_dump_interval)
+    fastR.pack(side=LEFT,padx=10,pady=10)
+    mediumR.pack(side=LEFT,padx=10,pady=10)
+    slowR.pack(side=LEFT,padx=10,pady=10)
+    updateF.pack(padx=10,pady=0,fill=X)
+
 
 
 
@@ -414,6 +478,11 @@ def build_gui():
 
     reporter.stopB    = stopB
     reporter.captureB = captureB
+    reporter.fastR    = fastR
+    reporter.mediumR  = mediumR
+    reporter.slowR    = slowR
+    reporter.discR    = discR
+    reporter.contR    = contR
     reporter.updateButtons()
 
     root.geometry("600x700")
