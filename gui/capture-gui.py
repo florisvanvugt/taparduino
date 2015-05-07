@@ -52,6 +52,10 @@ baudrate_continuous = 115200  # for the continuous data setting (load the corres
 
 
 
+## The maximum number of lines to remain in the GUI text area
+## (this prevents errors due to keeping all lines in memory)
+MAX_LINES = 50
+
 
 
 class Reporter:
@@ -62,8 +66,19 @@ class Reporter:
         self.thread = None
     
     def report(self,message):
+        #print "Reporting",message
         self.text.insert(END,message)
+
+        #numlines = int(self.text.index('end - 1 line').split('.')[0])
+        numlines = int(self.text.index('end').split('.')[0]) - 1
+        #log['state'] = 'normal'
+        if numlines>MAX_LINES:
+            #print "Number of lines: %i"%numlines
+            #self.text.delete(1.0, "%i.0"%(MAX_LINES-numlines+1))
+            self.text.delete(1.0, 2.0)
+
         self.text.see(Tkinter.END)
+
 
     def settextreceiver(self,textreceiver):
         self.text = textreceiver
