@@ -243,6 +243,7 @@ def stopCapture():
     reporter.thread=None
     reporter.updateButtons()
 
+    reporter.comm.close()
 
 
 
@@ -267,6 +268,7 @@ def runCapture():
         stopCapture()
         return -1
 
+    reporter.comm = comm
 
     filename = fileS.get() # get the filename we are supposed to output to
 
