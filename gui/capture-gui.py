@@ -411,13 +411,19 @@ def build_gui():
     packetI.set(1)
     displayI.set(2)
 
-    if platform.system()=="Windows":
-        usbS.set("COM<NUMBER>")
-    elif os.name=="posix":
-        usbS.set("/dev/ttyACM0")
+    if len(sys.argv)>1:
+        usbS.set(sys.argv[1])
     else:
-        usbS.set("<ENTER SERIAL PORT HERE>")
-    fileS.set("")
+        if platform.system()=="Windows":
+            usbS.set("COM<NUMBER>")
+        elif os.name=="posix":
+            usbS.set("/dev/ttyACM0")
+        else:
+            usbS.set("<ENTER SERIAL PORT HERE>")
+    if len(sys.argv)>2:
+        fileS.set(sys.argv[2])
+    else:
+        fileS.set("")
     keepGoingB.set(False)
 
 
