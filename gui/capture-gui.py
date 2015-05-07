@@ -443,7 +443,7 @@ def build_gui():
     fileB = Button(fileF,text="select",command=askSaveFile)
     fileB.pack(side=RIGHT,padx=10,pady=10)
     fileF.pack(padx=10,pady=0,fill=X)
-
+    
 
 
 
@@ -496,6 +496,15 @@ def build_gui():
     stopB.configure(state=DISABLED,background="darkgray")
 
 
+    def refresh_buttons(*args):
+        #print "Updating GUI"
+        reporter.updateButtons()
+
+    fileS.trace('w',refresh_buttons)
+    #fileEntry.bind("<KeyPress>",refresh_buttons)
+
+
+
     reporter.stopB    = stopB
     reporter.captureB = captureB
     reporter.fastR    = fastR
@@ -509,12 +518,6 @@ def build_gui():
 
     root.mainloop()
 
-
-    def updateGUI(*args):
-        print "Updating GUI"
-        reporter.updateButtons()
-
-    fileS.trace('w',updateGUI)
 
 
 
