@@ -54,7 +54,7 @@ baudrate_continuous = 115200  # for the continuous data setting (load the corres
 
 ## The maximum number of lines to remain in the GUI text area
 ## (this prevents errors due to keeping all lines in memory)
-MAX_LINES = 50
+MAX_LINES = 42
 
 
 
@@ -64,21 +64,26 @@ class Reporter:
 
     def __init__(self):
         self.thread = None
+        self.lock = False
     
     def report(self,message):
-        #print "Reporting",message
-        self.text.insert(END,message)
+        if not self.lock:
+            self.lock = True
+            #print "Reporting",message
+            self.text.insert(Tkinter.END,message)
 
-        #numlines = int(self.text.index('end - 1 line').split('.')[0])
-        numlines = int(self.text.index('end').split('.')[0]) - 1
-        #log['state'] = 'normal'
-        if numlines>MAX_LINES:
-            #print "Number of lines: %i"%numlines
-            #self.text.delete(1.0, "%i.0"%(MAX_LINES-numlines+1))
-            self.text.delete(1.0, 2.0)
+            #numlines = int(self.text.index('end - 1 line').split('.')[0])
+            #numlines = int(self.text.index('end').split('.')[0]) - 1
+            numlines = self.text.get("1.0", Tkinter.END).count("\n")
+            #print numlines
+            #log['state'] = 'normal'
+            if numlines>MAX_LINES:
+                #print "Number of lines: %i"%numlines
+                #self.text.delete(1.0, "%i.0"%(MAX_LINES-numlines+1))
+                self.text.delete("1.0", "2.0")
 
-        self.text.see(Tkinter.END)
-
+            self.text.see(Tkinter.END)
+            self.lock= False
 
     def settextreceiver(self,textreceiver):
         self.text = textreceiver
@@ -112,9 +117,9 @@ class Reporter:
                 buttonstate = DISABLED
             # Whether we are in continuous data mode
 
-            self.fastR.config(state=buttonstate)
+            self.fastR.config(  state=buttonstate)
             self.mediumR.config(state=buttonstate)
-            self.slowR.config(state=buttonstate)
+            self.slowR.config(  state=buttonstate)
 
             self.stopB.configure   (state=DISABLED,background="gray")
             if len(fileS.get())>0:
@@ -140,7 +145,7 @@ class Reporter:
             refreshrate = displayI.get()
             
             # This controls what fraction of packages is displayed: if set to 100, it will show 1 package in 100.
-            refreshrates = {1: 1,
+            refreshrates = {1: 10,
                             2: 100,
                             3: 1000}
             self.report_dump_interval = refreshrates[refreshrate]
@@ -505,6 +510,11 @@ def build_gui():
     root.mainloop()
 
 
+    def updateGUI(*args):
+        print "Updating GUI"
+        reporter.updateButtons()
+
+    fileS.trace('w',updateGUI)
 
 
 
