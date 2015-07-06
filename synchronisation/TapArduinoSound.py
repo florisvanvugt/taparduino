@@ -22,7 +22,7 @@ baudrate = 115200 # this is the baudrate set on the Arduino for the continuous s
 try:
     sound_file = sys.argv[1]
 except:
-    sound_file = "Dont_stop_me_now.wav"
+    sound_file = "Metronome_400ms.wav"
     print("Using default sound\n")
 
 try:
